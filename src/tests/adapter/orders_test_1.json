@@ -1,0 +1,3 @@
+{"id":"o1","marketplace":"amazon","country": "FR","amount_cents":100,"created_at":"2024-11-01T00:00:00Z"}
+{"id":"o2","marketplace":"","country": "FR","amount_cents":200,"created_at":"2024-11-01T00:00:00Z"}
+{"id":"o3","marketplace":"amazon","country": "DE","amount_cents":-50,"created_at":"2024-11-01T00:00:00Z"}

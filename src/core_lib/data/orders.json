@@ -1,0 +1,9 @@
+{"id": "o1", "marketplace": "amazon",    "country": "FR", "amount_cents": 2599, "created_at": "2024-11-01T10:15:00Z"}
+{"id": "o2", "marketplace": "cdiscount", "country": "FR", "amount_cents": 1299, "created_at": "2024-11-01T10:20:00Z"}
+{"id": "o3", "marketplace": "amazon",    "country": "DE", "amount_cents": -500, "created_at": "2024-11-01T10:30:00Z"}
+{"id": "o4", "marketplace": "",          "country": "FR", "amount_cents": 5000, "created_at": "2024-11-01T11:00:00Z"}
+{"id": "o5", "marketplace": "amazon",    "country": "FR", "amount_cents": 0,    "created_at": "2024-11-01T11:15:00Z"}
+{"id": "o6", "marketplace": "cdiscount", "country": "ES", "amount_cents": 3499, "created_at": "2024-11-01T11:30:00Z"}
+{"id": "o7", "marketplace": "ebay",      "country": "FR", "amount_cents": 799,  "created_at": "2024-11-01T11:45:00Z"}
+{"id": "o8", "marketplace": "amazon",    "country": "IT", "amount_cents": 1599, "created_at": "2024-11-01T12:00:00Z"}
+{"id": "o8", "marketplace": "amazon",    "country": "IT", "amount_cents": 1599, "created_at": "2024-11-02T14:00:00Z"}
