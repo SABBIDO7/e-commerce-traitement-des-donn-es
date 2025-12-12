@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 import sys
 from typing import List, Optional
-from adapters.orders import Orders
+from core_lib.adapters.orders import Orders
 from core_lib.adapters.filters import Filters
 
 def main(argv: List[str]) -> str:

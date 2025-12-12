@@ -147,9 +147,3 @@ for order in stream_orders(file):
 4. **Cas réaliste** : Mélange de commandes valides et suspectes, comme en production
 
 **Second test important :** Le filtre de date (`test_from_date_filter`) car il valide une feature optionnelle qui pourrait causer des bugs silencieux si mal implémentée.
-
----
-
-## Améliorations possibles
-
-Voir la section suivante pour des suggestions d'amélioration.

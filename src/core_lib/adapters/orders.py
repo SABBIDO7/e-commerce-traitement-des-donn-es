@@ -10,15 +10,23 @@ from core_lib.models.order import Order
 
 from core_lib.models.order import Stats, SuspiciousOrder
 
+from core_lib.config import DATE_FORMAT, ENCODING
+
 class Orders:
 
     def get_orders(self,data_path:Path) -> list[Order]:
-        fmt = "%Y-%m-%dT%H:%M:%SZ"
-        orders: list[Order] = []
+        """
+        Read a JSONL file of orders and parse each line into an Order instance.
 
+        Each line in the file is expected to be a JSON object representing a single order.
+        """
+
+        orders: list[Order] = []
+        line_number = 0
         try:
-            with open(data_path, encoding="utf-8") as f:
+            with open(data_path, encoding=ENCODING) as f:
                 for line in f:
+                    line_number +=1
                     line = line.strip()
                     if not line:
                         continue  # skip empty lines
@@ -31,7 +39,7 @@ class Orders:
                         Order(
                             **{
                                 **order,
-                                "created_at": datetime.strptime(order["created_at"], fmt).date(),
+                                "created_at": datetime.strptime(order["created_at"], DATE_FORMAT).date(),
                             }
                         )
                     )
@@ -39,11 +47,20 @@ class Orders:
             return orders
         except FileNotFoundError:
             raise FileNotFoundError(f"The path: {data_path} is incorrect")
-
-    def get_total_revenue(self):
-        pass
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON at line {line_number}: {e}")
+        except KeyError as e:
+            raise ValueError(f"Missing required field at line {line_number}: {e}")
 
     def suspicious_issues(self,order: Order) -> List[SuspiciousOrder]:
+        """
+        Inspect a single order and return the list of detected suspicious issues.
+
+        A suspicious order is one that:
+        - has a negative amount_cents
+        - or has an empty or missing marketplace
+        """
+
         issues: List[SuspiciousOrder] = []
 
         if isinstance(order.amount_cents, int) and order.amount_cents < 0:
@@ -56,21 +73,44 @@ class Orders:
         return issues
 
     def should_include_by_from_date(self,order: Order, from_date: Optional[date]) -> bool:
+        """
+        Decide whether an order should be included based on the optional from_date filter.
+
+        If from_date is None, all orders are included.
+        """
+
         if from_date is None:
             return True
-        if not order.created_at:
+        elif not order.created_at:
             return False
+        elif not isinstance(order.created_at, date):
+           return False 
         else:
             return order.created_at>= from_date
     
     def process_orders(self,orders: List[Order], from_date: Optional[date] = None) -> Stats:
-        """Business logic (testable): compute revenues + suspicious orders."""
+        """
+        Process orders and compute revenue statistics.
         
+        Args:
+            orders: List of Order objects to process
+            from_date: Optional filter to include only orders >= this date
+            
+        Returns:
+            Stats object containing total revenue, per-marketplace revenue,
+            and list of suspicious orders
+            
+        Note:
+            - Negative amounts are excluded from revenue calculations
+            - Orders with missing/invalid amounts are counted as invalid
+        """        
+
         total_cents = 0
         by_marketplace: Dict[str, int] = {}
         suspicious: List[SuspiciousOrder] = []
         processed_orders = 0
         invalid_orders = 0
+        MIN_VALID_AMOUNT = 0
 
         for order in orders:
             if not self.should_include_by_from_date(order, from_date):
@@ -87,7 +127,7 @@ class Orders:
             suspicious.extend(self.suspicious_issues(order))
 
             # "Reliable stats": ignore negative amounts for revenue calculations
-            if amount > 0:
+            if amount > MIN_VALID_AMOUNT:
                 total_cents += amount
             else:
                 continue
@@ -106,10 +146,16 @@ class Orders:
     
     def _cents_to_eur_str(self, cents: int) -> str:
         """Convert integer cents to 'X.YY' string using Decimal to avoid float issues."""
+    
         eur = (Decimal(cents) / Decimal(100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         return f"{eur:.2f}"
 
     def format_output(self,stats: Stats) -> str:
+        """
+        Format the computed statistics into a human-readable multi-line string.
+        """
+
+        # Sort by revenue in descending order; if equal, fall back to sorting by marketplace name
         items = sorted(
             stats.revenue_by_marketplace_cents.items(),
             key=lambda kv: (-kv[1], kv[0]),
